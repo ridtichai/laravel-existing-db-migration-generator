@@ -26,6 +26,8 @@ class GenerateMigrationsCommand extends Command
             (array) $this->option('ignore')
         );
 
+        $useLaravelStyleMacros = (bool) config('existing-db-migration-generator.use_laravel_style_macros', true);
+
         $this->info('Reading schema from connection: ' . $connection);
 
         $tables = $schemaReader->read($connection, $onlyTables, $ignoreTables);
@@ -35,7 +37,9 @@ class GenerateMigrationsCommand extends Command
             return 0;
         }
 
-        $migrationWriter->write($tables, $path);
+        $migrationWriter->write($tables, $path, [
+            'use_laravel_style_macros' => $useLaravelStyleMacros,
+        ]);
 
         $this->info('Migration files generated successfully.');
         return 0;

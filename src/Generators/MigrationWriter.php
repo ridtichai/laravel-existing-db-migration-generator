@@ -6,18 +6,30 @@ use Illuminate\Support\Str;
 
 class MigrationWriter
 {
+    /**
+     * @var \Ridtichai\ExistingDbMigrationGenerator\Generators\TypeMapper
+     */
     protected $typeMapper;
 
+    /**
+     * @param \Ridtichai\ExistingDbMigrationGenerator\Generators\TypeMapper $typeMapper
+     */
     public function __construct(TypeMapper $typeMapper)
     {
         $this->typeMapper = $typeMapper;
     }
 
-    public function write(array $tables, $path)
+    /**
+     * @param array $tables
+     * @param string $path
+     * @param array $options
+     * @return void
+     */
+    public function write(array $tables, $path, array $options = [])
     {
-        $fullPath = base_path($path);
+        $fullPath = $this->resolveOutputPath($path);
 
-        if (! is_dir($fullPath)) {
+        if (!is_dir($fullPath)) {
             mkdir($fullPath, 0777, true);
         }
 
@@ -27,18 +39,68 @@ class MigrationWriter
             $className = 'Create' . Str::studly($table['name']) . 'Table';
             $fileName = date('Y_m_d_His', $timestamp + $index) . '_create_' . $table['name'] . '_table.php';
 
-            $content = $this->buildMigrationContent($className, $table);
+            $content = $this->buildMigrationContent($className, $table, $options);
 
             file_put_contents($fullPath . DIRECTORY_SEPARATOR . $fileName, $content);
         }
     }
 
-    protected function buildMigrationContent($className, array $table)
+    /**
+     * @param string $path
+     * @return string
+     */
+    protected function resolveOutputPath($path)
+    {
+        if ($this->isAbsolutePath($path)) {
+            return $path;
+        }
+
+        if (function_exists('base_path')) {
+            return base_path($path);
+        }
+
+        return $path;
+    }
+
+    /**
+     * @param string $path
+     * @return bool
+     */
+    protected function isAbsolutePath($path)
+    {
+        if (!$path) {
+            return false;
+        }
+
+        if ($path[0] === '/' || $path[0] === '\\') {
+            return true;
+        }
+
+        return (bool) preg_match('/^[A-Za-z]:\\\\/', $path);
+    }
+
+    /**
+     * @param string $className
+     * @param array $table
+     * @param array $options
+     * @return string
+     */
+    protected function buildMigrationContent($className, array $table, array $options = [])
     {
         $lines = [];
+        $useLaravelStyleMacros = !empty($options['use_laravel_style_macros']);
+        $useTimestamps = $useLaravelStyleMacros && $this->hasLaravelTimestamps($table['columns']);
 
         foreach ($table['columns'] as $column) {
-            $lines[] = '            ' . $this->typeMapper->mapColumn($column);
+            if ($useTimestamps && in_array($column->getName(), ['created_at', 'updated_at'], true)) {
+                continue;
+            }
+
+            $lines[] = '            ' . $this->typeMapper->mapColumn($column, $table, $options);
+        }
+
+        if ($useTimestamps) {
+            $lines[] = '            $table->timestamps();';
         }
 
         $upBody = implode("\n", $lines);
@@ -67,5 +129,30 @@ class {$className} extends Migration
 }
 
 PHP;
+    }
+
+    /**
+     * @param array $columns
+     * @return bool
+     */
+    protected function hasLaravelTimestamps(array $columns)
+    {
+        $hasCreatedAt = false;
+        $hasUpdatedAt = false;
+
+        foreach ($columns as $column) {
+            $name = $column->getName();
+            $type = strtolower($column->getType()->getName());
+
+            if ($name === 'created_at' && in_array($type, ['datetime', 'datetimetz'], true)) {
+                $hasCreatedAt = true;
+            }
+
+            if ($name === 'updated_at' && in_array($type, ['datetime', 'datetimetz'], true)) {
+                $hasUpdatedAt = true;
+            }
+        }
+
+        return $hasCreatedAt && $hasUpdatedAt;
     }
 }

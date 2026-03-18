@@ -2,10 +2,26 @@
 
 return [
     'default_output_path' => 'database/migrations',
+
     'exclude_tables' => [
         'migrations',
         'password_resets',
         'failed_jobs',
         'personal_access_tokens',
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Laravel Style Macros
+    |--------------------------------------------------------------------------
+    |
+    | When enabled, the generator will try to output Laravel-style shortcuts:
+    | - $table->id()
+    | - $table->timestamps()
+    | - $table->foreignId(...)->constrained(...)
+    |
+    | When disabled, the generator will stay closer to the original schema.
+    |
+    */
+    'use_laravel_style_macros' => true,
 ];
