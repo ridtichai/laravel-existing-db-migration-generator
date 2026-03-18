@@ -1,0 +1,25 @@
+{
+  "name": "ridtichai/laravel-existing-db-migration-generator",
+  "description": "Generate Laravel migration files from an existing database schema.",
+  "type": "library",
+  "license": "MIT",
+  "require": {
+    "php": "^7.4 || ^8.0",
+    "illuminate/support": "^8.75",
+    "illuminate/database": "^8.75",
+    "illuminate/console": "^8.75",
+    "doctrine/dbal": "^3.7"
+  },
+  "autoload": {
+    "psr-4": {
+      "Ridtichai\\ExistingDbMigrationGenerator\\": "src/"
+    }
+  },
+  "extra": {
+    "laravel": {
+      "providers": [
+        "Ridtichai\\ExistingDbMigrationGenerator\\MigrationGeneratorServiceProvider"
+      ]
+    }
+  }
+}
