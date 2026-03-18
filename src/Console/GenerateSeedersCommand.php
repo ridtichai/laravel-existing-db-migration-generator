@@ -112,7 +112,12 @@ class GenerateSeedersCommand extends Command
         }
 
         if ($autoRegister && !empty($generatedClassNames)) {
-            $seederWriter->registerSeederClasses($generatedClassNames, $path);
+            if ($all) {
+                $seederWriter->replaceDatabaseSeederClasses($generatedClassNames, $path);
+            } else {
+                $seederWriter->registerSeederClasses($generatedClassNames, $path);
+            }
+
             $this->info('DatabaseSeeder updated successfully.');
         }
 

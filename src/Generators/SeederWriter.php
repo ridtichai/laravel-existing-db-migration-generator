@@ -52,6 +52,8 @@ class SeederWriter
     }
 
     /**
+     * เพิ่ม class ใหม่ต่อท้ายของเดิม โดยไม่ลบของเก่า
+     *
      * @param array $classNames
      * @param string $path
      * @return void
@@ -77,6 +79,23 @@ class SeederWriter
         }
 
         $newContent = $this->buildDatabaseSeederContent($finalCalls);
+        file_put_contents($databaseSeederPath, $newContent);
+    }
+
+    /**
+     * เขียนทับลำดับทั้งหมดใหม่ เหมาะกับกรณี --all
+     *
+     * @param array $classNames
+     * @param string $path
+     * @return void
+     */
+    public function replaceDatabaseSeederClasses(array $classNames, $path)
+    {
+        $classNames = array_values(array_unique($classNames));
+
+        $databaseSeederPath = $this->ensureDatabaseSeederExists($path);
+        $newContent = $this->buildDatabaseSeederContent($classNames);
+
         file_put_contents($databaseSeederPath, $newContent);
     }
 
