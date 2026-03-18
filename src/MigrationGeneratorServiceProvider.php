@@ -4,6 +4,7 @@ namespace Ridtichai\ExistingDbMigrationGenerator;
 
 use Illuminate\Support\ServiceProvider;
 use Ridtichai\ExistingDbMigrationGenerator\Console\GenerateMigrationsCommand;
+use Ridtichai\ExistingDbMigrationGenerator\Console\GenerateSeedersCommand;
 
 class MigrationGeneratorServiceProvider extends ServiceProvider
 {
@@ -24,6 +25,7 @@ class MigrationGeneratorServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole()) {
             $this->commands([
                 GenerateMigrationsCommand::class,
+                GenerateSeedersCommand::class,
             ]);
         }
     }
