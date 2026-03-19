@@ -2,6 +2,8 @@
 
 namespace Ridtichai\ExistingDbMigrationGenerator\Generators;
 
+use Doctrine\DBAL\Types\Type;
+
 class TypeMapper
 {
     /**
@@ -36,7 +38,7 @@ class TypeMapper
     protected function isLaravelIdColumn($column, array $table)
     {
         $name = $column->getName();
-        $type = strtolower($column->getType()->getName());
+        $type = $this->getColumnTypeName($column);
 
         if ($name !== 'id') {
             return false;
@@ -85,7 +87,7 @@ class TypeMapper
     protected function mapForeignIdColumn($column, $foreignKey)
     {
         $name = $column->getName();
-        $type = strtolower($column->getType()->getName());
+        $type = $this->getColumnTypeName($column);
         $foreignTable = $foreignKey->getForeignTableName();
         $foreignColumns = $foreignKey->getForeignColumns();
 
@@ -115,7 +117,7 @@ class TypeMapper
      */
     protected function mapRegularColumn($column)
     {
-        $type = strtolower($column->getType()->getName());
+        $type = $this->getColumnTypeName($column);
         $name = $column->getName();
 
         switch ($type) {
@@ -151,10 +153,13 @@ class TypeMapper
 
             case 'datetime':
             case 'datetimetz':
+            case 'timestamp':
+            case 'timestamptz':
                 $line = "\$table->dateTime('{$name}')";
                 break;
 
             case 'time':
+            case 'timetz':
                 $line = "\$table->time('{$name}')";
                 break;
 
@@ -173,6 +178,7 @@ class TypeMapper
                 break;
 
             case 'blob':
+            case 'binary':
                 $line = "\$table->binary('{$name}')";
                 break;
 
@@ -195,6 +201,21 @@ class TypeMapper
         }
 
         return $line . ';';
+    }
+
+    /**
+     * @param mixed $column
+     * @return string
+     */
+    protected function getColumnTypeName($column)
+    {
+        $typeObject = $column->getType();
+
+        if (method_exists($typeObject, 'getName')) {
+            return strtolower($typeObject->getName());
+        }
+
+        return strtolower(Type::getTypeRegistry()->lookupName($typeObject));
     }
 
     /**

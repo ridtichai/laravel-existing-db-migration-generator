@@ -2,6 +2,7 @@
 
 namespace Ridtichai\ExistingDbMigrationGenerator\Generators;
 
+use Doctrine\DBAL\Types\Type;
 use Illuminate\Support\Str;
 
 class MigrationWriter
@@ -142,17 +143,32 @@ PHP;
 
         foreach ($columns as $column) {
             $name = $column->getName();
-            $type = strtolower($column->getType()->getName());
+            $type = $this->getColumnTypeName($column);
 
-            if ($name === 'created_at' && in_array($type, ['datetime', 'datetimetz'], true)) {
+            if ($name === 'created_at' && in_array($type, ['datetime', 'datetimetz', 'timestamp', 'timestamptz'], true)) {
                 $hasCreatedAt = true;
             }
 
-            if ($name === 'updated_at' && in_array($type, ['datetime', 'datetimetz'], true)) {
+            if ($name === 'updated_at' && in_array($type, ['datetime', 'datetimetz', 'timestamp', 'timestamptz'], true)) {
                 $hasUpdatedAt = true;
             }
         }
 
         return $hasCreatedAt && $hasUpdatedAt;
+    }
+
+    /**
+     * @param mixed $column
+     * @return string
+     */
+    protected function getColumnTypeName($column)
+    {
+        $typeObject = $column->getType();
+
+        if (method_exists($typeObject, 'getName')) {
+            return strtolower($typeObject->getName());
+        }
+
+        return strtolower(Type::getTypeRegistry()->lookupName($typeObject));
     }
 }
