@@ -119,6 +119,7 @@ class TypeMapper
     {
         $type = $this->getColumnTypeName($column);
         $name = $column->getName();
+        $omitDefault = config('existing-db-migration-generator.omit_default_string_length', true);
 
         switch ($type) {
             case 'bigint':
@@ -139,8 +140,13 @@ class TypeMapper
                 break;
 
             case 'string':
-                $length = $column->getLength() ?: 255;
-                $line = "\$table->string('{$name}', {$length})";
+                $length = $column->getLength();
+
+                if ($omitDefault && ($length === null || (int)$length === 255)) {
+                    $line = "\$table->string('{$name}')";
+                } else {
+                    $line = "\$table->string('{$name}', {$length})";
+                }
                 break;
 
             case 'text':

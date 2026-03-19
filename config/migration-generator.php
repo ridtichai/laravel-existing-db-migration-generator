@@ -26,7 +26,7 @@ return [
     |
     */
     'use_laravel_style_macros' => true,
-
+    'omit_default_string_length' => true,
     /*
     |--------------------------------------------------------------------------
     | Seeder Options
