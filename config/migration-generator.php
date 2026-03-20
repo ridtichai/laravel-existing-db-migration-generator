@@ -11,6 +11,13 @@ return [
         'personal_access_tokens',
     ],
 
+    'crud' => [
+        'layout' => 'layouts.index',
+        'view_parent_path' => 'pages/admin',
+        'form_columns' => 2,
+        'model_namespace' => 'App\\Models',
+        'controller_namespace' => 'App\\Http\\Controllers',
+    ],
 
     /*
     |--------------------------------------------------------------------------

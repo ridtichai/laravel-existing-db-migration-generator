@@ -26,6 +26,7 @@ class MigrationGeneratorServiceProvider extends ServiceProvider
             $this->commands([
                 GenerateMigrationsCommand::class,
                 GenerateSeedersCommand::class,
+                GenerateCrudCommand::class,
             ]);
         }
     }

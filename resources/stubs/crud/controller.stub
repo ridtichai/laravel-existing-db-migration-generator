@@ -1,0 +1,61 @@
+<?php
+
+namespace {{controllerNamespace}};
+
+use Illuminate\Http\Request;
+use {{modelNamespace}}\{{modelClass}};
+{{relatedModelUses}}{{hashUse}}
+class {{controllerClass}} extends Controller
+{
+    public function index()
+    {
+        ${{pluralVariable}} = {{modelClass}}::all();
+
+        return view('{{indexView}}', compact('{{pluralVariable}}'));
+    }
+
+    public function create()
+    {
+{{createRelatedLoads}}        {{createViewData}}
+    }
+
+    public function store(Request $request)
+    {
+        $data = $request->validate([
+{{validationRules}}
+        ]);
+
+{{storePasswordLogic}}        $item = new {{modelClass}};
+{{storeAssignments}}        $item->save();
+
+        return redirect()->route('{{tableName}}.index')->with('success', 'บันทึกข้อมูลเรียบร้อยแล้ว');
+    }
+
+    public function edit($id)
+    {
+        ${{modelVariable}} = {{modelClass}}::findOrFail($id);
+{{editRelatedLoads}}        {{editViewData}}
+    }
+
+    public function update(Request $request, $id)
+    {
+        ${{modelVariable}} = {{modelClass}}::findOrFail($id);
+
+        $data = $request->validate([
+{{validationRules}}
+        ]);
+
+{{updatePasswordLogic}}        $item = ${{modelVariable}};
+{{updateAssignments}}        $item->save();
+
+        return redirect()->route('{{tableName}}.index')->with('success', 'แก้ไขข้อมูลเรียบร้อยแล้ว');
+    }
+
+    public function destroy($id)
+    {
+        ${{modelVariable}} = {{modelClass}}::findOrFail($id);
+        ${{modelVariable}}->delete();
+
+        return redirect()->route('{{tableName}}.index')->with('success', 'ลบข้อมูลเรียบร้อยแล้ว');
+    }
+}

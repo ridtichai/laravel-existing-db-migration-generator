@@ -1,0 +1,19 @@
+@extends('{{layout}}')
+
+@section('content')
+    <div class="">
+        <h2 class="mb-4">{{sectionTitle}}</h2>
+
+        <form action="{{ route('{{routeName}}.update', ${{modelVariable}}->id) }}" method="POST" autocomplete="off">
+            @csrf
+            @method('PUT')
+
+            @include('{{formInclude}}', ['item' => ${{modelVariable}}])
+
+            <button type="submit" class="btn btn-primary">{{submitLabel}}</button>
+            <a href="{{ route('{{routeName}}.index') }}" class="btn btn-secondary">{{cancelLabel}}</a>
+        </form>
+    </div>
+@endsection
+
+@section('title', '{{pageTitle}}')

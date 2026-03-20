@@ -1,0 +1,18 @@
+@extends('{{layout}}')
+
+@section('content')
+    <div class="">
+        <h2>{{sectionTitle}}</h2>
+
+        <form action="{{ route('{{routeName}}.store') }}" method="POST" autocomplete="off">
+            @csrf
+
+            @include('{{formInclude}}', ['item' => null])
+
+            <button type="submit" class="btn btn-primary">{{submitLabel}}</button>
+            <a href="{{ route('{{routeName}}.index') }}" class="btn btn-secondary">{{cancelLabel}}</a>
+        </form>
+    </div>
+@endsection
+
+@section('title', '{{pageTitle}}')
