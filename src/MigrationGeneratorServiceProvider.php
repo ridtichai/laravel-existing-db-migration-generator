@@ -5,6 +5,7 @@ namespace Ridtichai\ExistingDbMigrationGenerator;
 use Illuminate\Support\ServiceProvider;
 use Ridtichai\ExistingDbMigrationGenerator\Console\GenerateMigrationsCommand;
 use Ridtichai\ExistingDbMigrationGenerator\Console\GenerateSeedersCommand;
+use Ridtichai\ExistingDbMigrationGenerator\Console\GenerateCrudCommand;
 
 class MigrationGeneratorServiceProvider extends ServiceProvider
 {
