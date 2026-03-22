@@ -81,8 +81,10 @@ class CrudGenerator
             '{{editViewData}}' => $this->buildEditViewData($viewDotBase . '.edit', $modelVariable, $relatedModels),
             '{{storePasswordLogic}}' => $this->buildStorePasswordLogic($fields, 2),
             '{{updatePasswordLogic}}' => $this->buildUpdatePasswordLogic($fields, 2),
-            '{{storeAssignments}}' => $this->buildAssignments('$item', '$data', 2),
-            '{{updateAssignments}}' => $this->buildAssignments('$item', '$data', 2),
+            //   '{{storeAssignments}}' => $this->buildAssignments('$item', '$data', 2),
+            '{{storeCreate}}' => $this->buildCreateArray($fields, $modelClass, 2),
+            //  '{{updateAssignments}}' => $this->buildAssignments('$item', '$data', 2),
+            '{{updateAssignments}}' => $this->buildUpdateAssignments($fields, $modelVariable, 2),
         ]);
 
         $indexContent = $this->renderStub('crud/index.blade.stub', [
@@ -445,6 +447,53 @@ class CrudGenerator
             . $indent . "    {$targetVariable}->{\$key} = \$value;\n"
             . $indent . "}\n";
     }
+
+
+    protected function buildCreateArray(array $fields, $modelClass, $indentLevel)
+    {
+        $indent = str_repeat('    ', $indentLevel);
+        $lines = [];
+
+        $lines[] = $indent . '$item = ' . $modelClass . '::create([';
+
+        foreach ($fields as $field) {
+            $name = $field['name'];
+
+            if ($field['input_type'] === 'password') {
+                $lines[] = $indent . "    '{$name}' => isset(\$data['{$name}']) ? Hash::make(\$data['{$name}']) : null,";
+            } else {
+                $lines[] = $indent . "    '{$name}' => \$data['{$name}'] ?? null,";
+            }
+        }
+
+        $lines[] = $indent . ']);';
+
+        return implode("\n", $lines) . "\n";
+    }
+
+
+    protected function buildUpdateAssignments(array $fields, $modelVariable, $indentLevel)
+    {
+        $indent = str_repeat('    ', $indentLevel);
+        $lines = [];
+
+        foreach ($fields as $field) {
+            $name = $field['name'];
+
+            if ($field['input_type'] === 'password') {
+                $lines[] = $indent . "if (!empty(\$data['{$name}'])) {";
+                $lines[] = $indent . "    \${$modelVariable}->{$name} = Hash::make(\$data['{$name}']);";
+                $lines[] = $indent . "}";
+            } else {
+                $lines[] = $indent . "\${$modelVariable}->{$name} = \$data['{$name}'] ?? null;";
+            }
+        }
+
+        return implode("\n", $lines) . "\n";
+    }
+
+
+
 
     /**
      * @param array $fields

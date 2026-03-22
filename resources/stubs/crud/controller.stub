@@ -25,8 +25,7 @@ class {{controllerClass}} extends Controller
 {{validationRules}}
         ]);
 
-{{storePasswordLogic}}        $item = new {{modelClass}};
-{{storeAssignments}}        $item->save();
+{{storePasswordLogic}}      {{storeCreate}}
 
         return redirect()->route('{{tableName}}.index')->with('success', 'บันทึกข้อมูลเรียบร้อยแล้ว');
     }
@@ -45,8 +44,8 @@ class {{controllerClass}} extends Controller
 {{validationRules}}
         ]);
 
-{{updatePasswordLogic}}        $item = ${{modelVariable}};
-{{updateAssignments}}        $item->save();
+{{updatePasswordLogic}}        {{updateAssignments}}
+${{modelVariable}}->save();
 
         return redirect()->route('{{tableName}}.index')->with('success', 'แก้ไขข้อมูลเรียบร้อยแล้ว');
     }
