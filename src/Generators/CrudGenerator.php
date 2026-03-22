@@ -7,24 +7,13 @@ use RuntimeException;
 
 class CrudGenerator
 {
-    /**
-     * @var \Ridtichai\ExistingDbMigrationGenerator\Generators\CrudFieldResolver
-     */
     protected $fieldResolver;
 
-    /**
-     * @param \Ridtichai\ExistingDbMigrationGenerator\Generators\CrudFieldResolver $fieldResolver
-     */
     public function __construct(CrudFieldResolver $fieldResolver)
     {
         $this->fieldResolver = $fieldResolver;
     }
 
-    /**
-     * @param array $tableMeta
-     * @param array $options
-     * @return array
-     */
     public function generate(array $tableMeta, array $options = [])
     {
         $table = $tableMeta['name'];
@@ -38,13 +27,9 @@ class CrudGenerator
 
         $crudConfig = (array) config('existing-db-migration-generator.crud', []);
         $layout = isset($crudConfig['layout']) ? $crudConfig['layout'] : 'layouts.index';
-        //  $viewParentPath = trim(isset($crudConfig['view_parent_path']) ? $crudConfig['view_parent_path'] : '', '/');
-
         $viewParentPath = isset($options['view_parent_path']) && $options['view_parent_path']
             ? trim($options['view_parent_path'], '/')
-            : trim(isset($crudConfig['view_parent_path']) ? $crudConfig['view_parent_path'] : '', '/');
-
-
+            : '';
         $formColumns = isset($crudConfig['form_columns']) ? (int) $crudConfig['form_columns'] : 2;
         $modelNamespace = isset($crudConfig['model_namespace']) ? $crudConfig['model_namespace'] : 'App\\Models';
         $controllerNamespace = isset($crudConfig['controller_namespace']) ? $crudConfig['controller_namespace'] : 'App\\Http\\Controllers';
@@ -70,6 +55,7 @@ class CrudGenerator
             '{{indexView}}' => $viewDotBase . '.index',
             '{{createView}}' => $viewDotBase . '.create',
             '{{editView}}' => $viewDotBase . '.edit',
+            '{{showView}}' => $viewDotBase . '.show',
             '{{resourceTitle}}' => $resourceTitle,
             '{{singleTitle}}' => $singleTitle,
             '{{relatedModelUses}}' => $this->buildRelatedModelUses($modelNamespace, $relatedModels),
@@ -79,11 +65,7 @@ class CrudGenerator
             '{{editRelatedLoads}}' => $this->buildRelatedLoads($relatedModels, 2),
             '{{createViewData}}' => $this->buildCreateViewData($viewDotBase . '.create', $relatedModels),
             '{{editViewData}}' => $this->buildEditViewData($viewDotBase . '.edit', $modelVariable, $relatedModels),
-            '{{storePasswordLogic}}' => $this->buildStorePasswordLogic($fields, 2),
-            '{{updatePasswordLogic}}' => $this->buildUpdatePasswordLogic($fields, 2),
-            //   '{{storeAssignments}}' => $this->buildAssignments('$item', '$data', 2),
             '{{storeCreate}}' => $this->buildCreateArray($fields, $modelClass, 2),
-            //  '{{updateAssignments}}' => $this->buildAssignments('$item', '$data', 2),
             '{{updateAssignments}}' => $this->buildUpdateAssignments($fields, $modelVariable, 2),
         ]);
 
@@ -123,6 +105,15 @@ class CrudGenerator
             '{{pageTitle}}' => 'แก้ไข' . $singleTitle,
         ]);
 
+        $showContent = $this->renderStub('crud/show.blade.stub', [
+            '{{layout}}' => $layout,
+            '{{sectionTitle}}' => 'รายละเอียด' . $singleTitle,
+            '{{routeName}}' => $table,
+            '{{modelVariable}}' => $modelVariable,
+            '{{showRows}}' => $this->buildShowRows($fields, '$' . $modelVariable),
+            '{{pageTitle}}' => 'รายละเอียด' . $singleTitle,
+        ]);
+
         $formContent = $this->renderStub('crud/_form.blade.stub', [
             '{{formRows}}' => $this->buildFormRows($fields, $formColumns),
         ]);
@@ -138,16 +129,19 @@ class CrudGenerator
         $indexPath = $viewDirectory . DIRECTORY_SEPARATOR . 'index.blade.php';
         $createPath = $viewDirectory . DIRECTORY_SEPARATOR . 'create.blade.php';
         $editPath = $viewDirectory . DIRECTORY_SEPARATOR . 'edit.blade.php';
+        $showPath = $viewDirectory . DIRECTORY_SEPARATOR . 'show.blade.php';
         $formPath = $viewDirectory . DIRECTORY_SEPARATOR . '_form.blade.php';
 
         $this->writeFile($indexPath, $indexContent, $force);
         $this->writeFile($createPath, $createContent, $force);
         $this->writeFile($editPath, $editContent, $force);
+        $this->writeFile($showPath, $showContent, $force);
         $this->writeFile($formPath, $formContent, $force);
 
         $files[] = $indexPath;
         $files[] = $createPath;
         $files[] = $editPath;
+        $files[] = $showPath;
         $files[] = $formPath;
 
         return [
@@ -156,11 +150,6 @@ class CrudGenerator
         ];
     }
 
-    /**
-     * @param string $viewParentPath
-     * @param string $table
-     * @return string
-     */
     protected function buildViewDotBase($viewParentPath, $table)
     {
         $prefix = trim(str_replace('/', '.', $viewParentPath), '.');
@@ -168,11 +157,6 @@ class CrudGenerator
         return $prefix !== '' ? $prefix . '.' . $table : $table;
     }
 
-    /**
-     * @param string $viewParentPath
-     * @param string $table
-     * @return string
-     */
     protected function buildViewDirectory($viewParentPath, $table)
     {
         $path = base_path('resources/views');
@@ -184,10 +168,6 @@ class CrudGenerator
         return $path . DIRECTORY_SEPARATOR . $table;
     }
 
-    /**
-     * @param string $controllerNamespace
-     * @return string
-     */
     protected function buildControllerDirectory($controllerNamespace)
     {
         $relativeNamespace = preg_replace('/^App\\\\/', '', $controllerNamespace);
@@ -196,10 +176,6 @@ class CrudGenerator
         return base_path($relativePath !== '' ? 'app' . DIRECTORY_SEPARATOR . $relativePath : 'app');
     }
 
-    /**
-     * @param array $fields
-     * @return array
-     */
     protected function extractRelatedModels(array $fields)
     {
         $relatedModels = [];
@@ -218,11 +194,6 @@ class CrudGenerator
         return array_values($relatedModels);
     }
 
-    /**
-     * @param string $modelNamespace
-     * @param array $relatedModels
-     * @return string
-     */
     protected function buildRelatedModelUses($modelNamespace, array $relatedModels)
     {
         if (empty($relatedModels)) {
@@ -238,10 +209,6 @@ class CrudGenerator
         return implode("\n", $lines) . "\n";
     }
 
-    /**
-     * @param array $fields
-     * @return bool
-     */
     protected function hasPasswordField(array $fields)
     {
         foreach ($fields as $field) {
@@ -253,11 +220,6 @@ class CrudGenerator
         return false;
     }
 
-    /**
-     * @param array $relatedModels
-     * @param int $indentLevel
-     * @return string
-     */
     protected function buildRelatedLoads(array $relatedModels, $indentLevel)
     {
         if (empty($relatedModels)) {
@@ -274,11 +236,6 @@ class CrudGenerator
         return implode("\n", $lines) . "\n";
     }
 
-    /**
-     * @param string $createView
-     * @param array $relatedModels
-     * @return string
-     */
     protected function buildCreateViewData($createView, array $relatedModels)
     {
         if (empty($relatedModels)) {
@@ -286,6 +243,7 @@ class CrudGenerator
         }
 
         $vars = [];
+
         foreach ($relatedModels as $related) {
             $vars[] = "'" . $related['variable'] . "'";
         }
@@ -293,12 +251,6 @@ class CrudGenerator
         return "return view('{$createView}', compact(" . implode(', ', $vars) . "));";
     }
 
-    /**
-     * @param string $editView
-     * @param string $modelVariable
-     * @param array $relatedModels
-     * @return string
-     */
     protected function buildEditViewData($editView, $modelVariable, array $relatedModels)
     {
         $vars = ["'" . $modelVariable . "'"];
@@ -310,10 +262,6 @@ class CrudGenerator
         return "return view('{$editView}', compact(" . implode(', ', $vars) . "));";
     }
 
-    /**
-     * @param array $fields
-     * @return string
-     */
     protected function buildValidationRules(array $fields)
     {
         $lines = [];
@@ -332,7 +280,6 @@ class CrudGenerator
                     $rules[] = 'email';
                     $rules[] = 'max:255';
                     break;
-
                 case 'password':
                     $rules[] = 'nullable';
                     $rules[] = 'string';
@@ -342,7 +289,6 @@ class CrudGenerator
                         $rules[] = 'max:255';
                     }
                     break;
-
                 case 'textarea':
                 case 'text':
                     $rules[] = 'string';
@@ -350,22 +296,18 @@ class CrudGenerator
                         $rules[] = 'max:' . (int) $field['length'];
                     }
                     break;
-
                 case 'number':
                     $rules[] = in_array($field['column_type'], ['smallint', 'integer', 'int', 'bigint'], true) ? 'integer' : 'numeric';
                     break;
-
                 case 'date':
                 case 'datetime':
                 case 'datetime-local':
                 case 'time':
                     $rules[] = 'date';
                     break;
-
                 case 'checkbox':
                     $rules[] = 'boolean';
                     break;
-
                 case 'select':
                 case 'radio':
                     $rules[] = 'nullable';
@@ -373,7 +315,6 @@ class CrudGenerator
                         $rules[] = 'integer';
                     }
                     break;
-
                 default:
                     $rules[] = 'string';
                     if (!empty($field['length'])) {
@@ -388,66 +329,6 @@ class CrudGenerator
 
         return implode("\n", $lines);
     }
-
-    /**
-     * @param array $fields
-     * @param int $indentLevel
-     * @return string
-     */
-    protected function buildStorePasswordLogic(array $fields, $indentLevel)
-    {
-        $indent = str_repeat('    ', $indentLevel);
-
-        foreach ($fields as $field) {
-            if ($field['input_type'] === 'password') {
-                return $indent . "if (!empty(\$data['" . $field['name'] . "'])) {\n"
-                    . $indent . "    \$data['" . $field['name'] . "'] = Hash::make(\$data['" . $field['name'] . "']);\n"
-                    . $indent . "} else {\n"
-                    . $indent . "    unset(\$data['" . $field['name'] . "']);\n"
-                    . $indent . "}\n";
-            }
-        }
-
-        return '';
-    }
-
-    /**
-     * @param array $fields
-     * @param int $indentLevel
-     * @return string
-     */
-    protected function buildUpdatePasswordLogic(array $fields, $indentLevel)
-    {
-        $indent = str_repeat('    ', $indentLevel);
-
-        foreach ($fields as $field) {
-            if ($field['input_type'] === 'password') {
-                return $indent . "if (isset(\$data['" . $field['name'] . "']) && \$data['" . $field['name'] . "'] !== '') {\n"
-                    . $indent . "    \$data['" . $field['name'] . "'] = Hash::make(\$data['" . $field['name'] . "']);\n"
-                    . $indent . "} else {\n"
-                    . $indent . "    unset(\$data['" . $field['name'] . "']);\n"
-                    . $indent . "}\n";
-            }
-        }
-
-        return '';
-    }
-
-    /**
-     * @param string $targetVariable
-     * @param string $dataVariable
-     * @param int $indentLevel
-     * @return string
-     */
-    protected function buildAssignments($targetVariable, $dataVariable, $indentLevel)
-    {
-        $indent = str_repeat('    ', $indentLevel);
-
-        return $indent . "foreach ({$dataVariable} as \$key => \$value) {\n"
-            . $indent . "    {$targetVariable}->{\$key} = \$value;\n"
-            . $indent . "}\n";
-    }
-
 
     protected function buildCreateArray(array $fields, $modelClass, $indentLevel)
     {
@@ -471,7 +352,6 @@ class CrudGenerator
         return implode("\n", $lines) . "\n";
     }
 
-
     protected function buildUpdateAssignments(array $fields, $modelVariable, $indentLevel)
     {
         $indent = str_repeat('    ', $indentLevel);
@@ -492,13 +372,6 @@ class CrudGenerator
         return implode("\n", $lines) . "\n";
     }
 
-
-
-
-    /**
-     * @param array $fields
-     * @return string
-     */
     protected function buildIndexHeaders(array $fields)
     {
         $lines = ["                    <th>#</th>"];
@@ -514,12 +387,6 @@ class CrudGenerator
         return implode("\n", $lines);
     }
 
-    /**
-     * @param array $fields
-     * @param string $itemVariable
-     * @param string $routeName
-     * @return string
-     */
     protected function buildIndexCells(array $fields, $itemVariable, $routeName)
     {
         $lines = ["                        <td>{{ \$key + 1 }}</td>"];
@@ -538,6 +405,7 @@ class CrudGenerator
         }
 
         $lines[] = '                        <td>';
+        $lines[] = '                            <a href="{{ route(\'' . $routeName . '.show\', ' . $itemVariable . '->id) }}" class="btn btn-sm btn-info">View</a>';
         $lines[] = '                            <a href="{{ route(\'' . $routeName . '.edit\', ' . $itemVariable . '->id) }}" class="btn btn-sm btn-warning">แก้ไข</a>';
         $lines[] = '                            <form action="{{ route(\'' . $routeName . '.destroy\', ' . $itemVariable . '->id) }}" method="POST" class="delete-form" style="display:inline-block;">';
         $lines[] = '                                @csrf';
@@ -549,10 +417,6 @@ class CrudGenerator
         return implode("\n", $lines);
     }
 
-    /**
-     * @param array $fields
-     * @return int
-     */
     protected function countVisibleIndexFields(array $fields)
     {
         $count = 0;
@@ -566,11 +430,6 @@ class CrudGenerator
         return $count;
     }
 
-    /**
-     * @param array $fields
-     * @param int $formColumns
-     * @return string
-     */
     protected function buildFormRows(array $fields, $formColumns)
     {
         $visibleFields = [];
@@ -608,10 +467,24 @@ class CrudGenerator
         return implode("\n\n", $rows);
     }
 
-    /**
-     * @param int $formColumns
-     * @return string
-     */
+    protected function buildShowRows(array $fields, $itemVariable)
+    {
+        $lines = [];
+
+        foreach ($fields as $field) {
+            if (!$field['index_visible']) {
+                continue;
+            }
+
+            $lines[] = '                <div class="row mb-3">';
+            $lines[] = '                    <div class="col-md-3 fw-bold">' . $field['label'] . '</div>';
+            $lines[] = '                    <div class="col-md-9">{{ ' . $itemVariable . '->' . $field['name'] . ' }}</div>';
+            $lines[] = '                </div>';
+        }
+
+        return implode("\n", $lines);
+    }
+
     protected function resolveBootstrapColumnClass($formColumns)
     {
         switch ((int) $formColumns) {
@@ -628,20 +501,11 @@ class CrudGenerator
         }
     }
 
-    /**
-     * @param array $field
-     * @return string
-     */
     protected function buildHiddenField(array $field)
     {
         return '<input type="hidden" name="' . $field['name'] . '" value="{{ old(\'' . $field['name'] . '\', isset($item) ? $item->' . $field['name'] . ' : \'\') }}">';
     }
 
-    /**
-     * @param array $field
-     * @param string $colClass
-     * @return string
-     */
     protected function buildFieldBlock(array $field, $colClass)
     {
         $name = $field['name'];
@@ -657,7 +521,6 @@ class CrudGenerator
             case 'textarea':
                 $lines[] = '        <textarea class="form-control @error(\'' . $name . '\') is-invalid @enderror" id="' . $name . '" name="' . $name . '" ' . $required . '>{{ ' . $oldValue . ' }}</textarea>';
                 break;
-
             case 'select':
                 if (!empty($field['is_foreign']) && !empty($field['related_variable'])) {
                     $optionVar = '$' . $field['related_variable'];
@@ -676,7 +539,6 @@ class CrudGenerator
                     $lines[] = '        </select>';
                 }
                 break;
-
             case 'checkbox':
                 $lines[] = '        <div class="form-check mt-2">';
                 $lines[] = '            <input type="hidden" name="' . $name . '" value="0">';
@@ -684,11 +546,9 @@ class CrudGenerator
                 $lines[] = '            <label class="form-check-label" for="' . $name . '">' . $label . '</label>';
                 $lines[] = '        </div>';
                 break;
-
             case 'password':
                 $lines[] = '        <input type="password" class="form-control @error(\'' . $name . '\') is-invalid @enderror" id="' . $name . '" name="' . $name . '" autocomplete="new-password">';
                 break;
-
             case 'date':
             case 'time':
             case 'email':
@@ -696,7 +556,6 @@ class CrudGenerator
             case 'datetime-local':
                 $lines[] = '        <input type="' . $field['input_type'] . '" class="form-control @error(\'' . $name . '\') is-invalid @enderror" id="' . $name . '" name="' . $name . '" value="{{ ' . $oldValue . ' }}" ' . $required . '>';
                 break;
-
             default:
                 $lines[] = '        <input type="text" class="form-control @error(\'' . $name . '\') is-invalid @enderror" id="' . $name . '" name="' . $name . '" value="{{ ' . $oldValue . ' }}" ' . $required . '>';
                 break;
@@ -710,11 +569,6 @@ class CrudGenerator
         return implode("\n", $lines);
     }
 
-    /**
-     * @param string $stub
-     * @param array $replacements
-     * @return string
-     */
     protected function renderStub($stub, array $replacements)
     {
         $stubPath = __DIR__ . '/../../resources/stubs/' . $stub;
@@ -732,10 +586,6 @@ class CrudGenerator
         return $content;
     }
 
-    /**
-     * @param string $directory
-     * @return void
-     */
     protected function ensureDirectory($directory)
     {
         if (!is_dir($directory)) {
@@ -743,12 +593,6 @@ class CrudGenerator
         }
     }
 
-    /**
-     * @param string $path
-     * @param string $content
-     * @param bool $force
-     * @return void
-     */
     protected function writeFile($path, $content, $force)
     {
         if (file_exists($path) && !$force) {
