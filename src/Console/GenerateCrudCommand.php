@@ -8,10 +8,11 @@ use Ridtichai\ExistingDbMigrationGenerator\Generators\SchemaReader;
 
 class GenerateCrudCommand extends Command
 {
-    protected $signature = 'existing-db:generate-crud
-                            {--connection= : Database connection name}
-                            {--table= : Table name}
-                            {--force : Overwrite existing files}';
+protected $signature = 'existing-db:generate-crud
+                        {--connection= : Database connection name}
+                        {--table= : Table name}
+                        {--path= : Blade parent path เช่น pages/admin}
+                        {--force : Overwrite existing files}';
 
     protected $description = 'Generate CRUD controller and blade views from an existing database table';
 
@@ -40,6 +41,7 @@ class GenerateCrudCommand extends Command
 
         $result = $crudGenerator->generate($tables[0], [
             'force' => $force,
+            'view_parent_path' => $this->option('path'),
         ]);
 
         foreach ($result['files'] as $file) {

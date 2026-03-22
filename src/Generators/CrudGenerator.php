@@ -38,7 +38,13 @@ class CrudGenerator
 
         $crudConfig = (array) config('existing-db-migration-generator.crud', []);
         $layout = isset($crudConfig['layout']) ? $crudConfig['layout'] : 'layouts.index';
-        $viewParentPath = trim(isset($crudConfig['view_parent_path']) ? $crudConfig['view_parent_path'] : '', '/');
+        //  $viewParentPath = trim(isset($crudConfig['view_parent_path']) ? $crudConfig['view_parent_path'] : '', '/');
+
+        $viewParentPath = isset($options['view_parent_path']) && $options['view_parent_path']
+            ? trim($options['view_parent_path'], '/')
+            : trim(isset($crudConfig['view_parent_path']) ? $crudConfig['view_parent_path'] : '', '/');
+
+
         $formColumns = isset($crudConfig['form_columns']) ? (int) $crudConfig['form_columns'] : 2;
         $modelNamespace = isset($crudConfig['model_namespace']) ? $crudConfig['model_namespace'] : 'App\\Models';
         $controllerNamespace = isset($crudConfig['controller_namespace']) ? $crudConfig['controller_namespace'] : 'App\\Http\\Controllers';
@@ -71,8 +77,8 @@ class CrudGenerator
             '{{validationRules}}' => $this->buildValidationRules($fields),
             '{{createRelatedLoads}}' => $this->buildRelatedLoads($relatedModels, 2),
             '{{editRelatedLoads}}' => $this->buildRelatedLoads($relatedModels, 2),
-            '{{createViewData}}' => $this->buildCreateViewData($relatedModels),
-            '{{editViewData}}' => $this->buildEditViewData($modelVariable, $relatedModels),
+            '{{createViewData}}' => $this->buildCreateViewData($viewDotBase . '.create', $relatedModels),
+            '{{editViewData}}' => $this->buildEditViewData($viewDotBase . '.edit', $modelVariable, $relatedModels),
             '{{storePasswordLogic}}' => $this->buildStorePasswordLogic($fields, 2),
             '{{updatePasswordLogic}}' => $this->buildUpdatePasswordLogic($fields, 2),
             '{{storeAssignments}}' => $this->buildAssignments('$item', '$data', 2),
@@ -86,7 +92,7 @@ class CrudGenerator
             '{{routeName}}' => $table,
             '{{pluralVariable}}' => $pluralVariable,
             '{{indexHeaders}}' => $this->buildIndexHeaders($fields),
-            '{{indexCells}}' => $this->buildIndexCells($fields, '$value'),
+            '{{indexCells}}' => $this->buildIndexCells($fields, '$value', $table),
             '{{emptyColspan}}' => (string) ($this->countVisibleIndexFields($fields) + 2),
             '{{emptyText}}' => 'ยังไม่มีข้อมูล',
             '{{pageTitle}}' => $resourceTitle,
@@ -267,13 +273,14 @@ class CrudGenerator
     }
 
     /**
+     * @param string $createView
      * @param array $relatedModels
      * @return string
      */
-    protected function buildCreateViewData(array $relatedModels)
+    protected function buildCreateViewData($createView, array $relatedModels)
     {
         if (empty($relatedModels)) {
-            return "return view('{{createView}}');";
+            return "return view('{$createView}');";
         }
 
         $vars = [];
@@ -281,15 +288,16 @@ class CrudGenerator
             $vars[] = "'" . $related['variable'] . "'";
         }
 
-        return "return view('{{createView}}', compact(" . implode(', ', $vars) . "));";
+        return "return view('{$createView}', compact(" . implode(', ', $vars) . "));";
     }
 
     /**
+     * @param string $editView
      * @param string $modelVariable
      * @param array $relatedModels
      * @return string
      */
-    protected function buildEditViewData($modelVariable, array $relatedModels)
+    protected function buildEditViewData($editView, $modelVariable, array $relatedModels)
     {
         $vars = ["'" . $modelVariable . "'"];
 
@@ -297,7 +305,7 @@ class CrudGenerator
             $vars[] = "'" . $related['variable'] . "'";
         }
 
-        return "return view('{{editView}}', compact(" . implode(', ', $vars) . "));";
+        return "return view('{$editView}', compact(" . implode(', ', $vars) . "));";
     }
 
     /**
@@ -460,9 +468,10 @@ class CrudGenerator
     /**
      * @param array $fields
      * @param string $itemVariable
+     * @param string $routeName
      * @return string
      */
-    protected function buildIndexCells(array $fields, $itemVariable)
+    protected function buildIndexCells(array $fields, $itemVariable, $routeName)
     {
         $lines = ["                        <td>{{ \$key + 1 }}</td>"];
 
@@ -480,8 +489,8 @@ class CrudGenerator
         }
 
         $lines[] = '                        <td>';
-        $lines[] = '                            <a href="{{ route(\'' . trim($this->getRouteNameFromItemVariable($itemVariable), "'") . '.edit\', ' . $itemVariable . '->id) }}" class="btn btn-sm btn-warning">แก้ไข</a>';
-        $lines[] = '                            <form action="{{ route(\'' . trim($this->getRouteNameFromItemVariable($itemVariable), "'") . '.destroy\', ' . $itemVariable . '->id) }}" method="POST" class="delete-form" style="display:inline-block;">';
+        $lines[] = '                            <a href="{{ route(\'' . $routeName . '.edit\', ' . $itemVariable . '->id) }}" class="btn btn-sm btn-warning">แก้ไข</a>';
+        $lines[] = '                            <form action="{{ route(\'' . $routeName . '.destroy\', ' . $itemVariable . '->id) }}" method="POST" class="delete-form" style="display:inline-block;">';
         $lines[] = '                                @csrf';
         $lines[] = '                                @method(\'DELETE\')';
         $lines[] = '                                <button type="submit" class="btn btn-sm btn-danger">ลบ</button>';
@@ -489,15 +498,6 @@ class CrudGenerator
         $lines[] = '                        </td>';
 
         return implode("\n", $lines);
-    }
-
-    /**
-     * @param string $itemVariable
-     * @return string
-     */
-    protected function getRouteNameFromItemVariable($itemVariable)
-    {
-        return '{{routeName}}';
     }
 
     /**
@@ -568,16 +568,12 @@ class CrudGenerator
         switch ((int) $formColumns) {
             case 1:
                 return 'col-md-12';
-
             case 2:
                 return 'col-md-6';
-
             case 3:
                 return 'col-md-4';
-
             case 4:
                 return 'col-md-3';
-
             default:
                 return 'col-md-6';
         }
