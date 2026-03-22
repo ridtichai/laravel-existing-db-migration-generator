@@ -25,18 +25,16 @@ class {{controllerClass}} extends Controller
 {{validationRules}}
         ]);
 
-{{storePasswordLogic}}      {{storeCreate}}
-
+{{storeCreate}}
         return redirect()->route('{{tableName}}.index')->with('success', 'บันทึกข้อมูลเรียบร้อยแล้ว');
     }
 
-        public function show($id)
+    public function show($id)
     {
         ${{modelVariable}} = {{modelClass}}::findOrFail($id);
 
         return view('{{showView}}', compact('{{modelVariable}}'));
     }
-
 
     public function edit($id)
     {
@@ -52,8 +50,7 @@ class {{controllerClass}} extends Controller
 {{validationRules}}
         ]);
 
-{{updatePasswordLogic}}        {{updateAssignments}}
-${{modelVariable}}->save();
+{{updateAssignments}}        ${{modelVariable}}->save();
 
         return redirect()->route('{{tableName}}.index')->with('success', 'แก้ไขข้อมูลเรียบร้อยแล้ว');
     }
