@@ -76,7 +76,7 @@ class CrudGenerator
             '{{routeName}}' => $table,
             '{{pluralVariable}}' => $pluralVariable,
             '{{indexHeaders}}' => $this->buildIndexHeaders($fields),
-            '{{indexCells}}' => $this->buildIndexCells($fields, '$value', $table),
+            '{{indexCells}}' => $this->buildIndexCells($fields, '$value', $table , $pluralVariable),
             '{{emptyColspan}}' => (string) ($this->countVisibleIndexFields($fields) + 2),
             '{{emptyText}}' => 'ยังไม่มีข้อมูล',
             '{{pageTitle}}' => $resourceTitle,
@@ -387,9 +387,9 @@ class CrudGenerator
         return implode("\n", $lines);
     }
 
-    protected function buildIndexCells(array $fields, $itemVariable, $routeName)
+    protected function buildIndexCells(array $fields, $itemVariable, $routeName, $pluralVariable)
     {
-        $lines = ["                        <td>{{ \$key + 1 }}</td>"];
+        $lines = ["                        <td>{{ \${$pluralVariable}->firstItem() + \$key }}</td>"];
 
         foreach ($fields as $field) {
             if (!$field['index_visible']) {

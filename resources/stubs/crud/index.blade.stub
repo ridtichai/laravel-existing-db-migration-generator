@@ -13,6 +13,7 @@
             </div>
         @endif
 
+    <div class="table-responsive">
         <table class="table table-bordered table-striped">
             <thead>
                 <tr>
@@ -31,6 +32,12 @@
                 @endforelse
             </tbody>
         </table>
+        </div>
+
+          <div class="mt-2">
+            {{ ${{pluralVariable}}->links() }}
+        </div>
+
     </div>
 @endsection
 

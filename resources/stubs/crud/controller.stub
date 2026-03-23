@@ -9,23 +9,25 @@ class {{controllerClass}} extends Controller
 {
     public function index()
     {
-        ${{pluralVariable}} = {{modelClass}}::all();
+        ${{pluralVariable}} = {{modelClass}}::paginate(20);
 
         return view('{{indexView}}', compact('{{pluralVariable}}'));
     }
 
     public function create()
     {
-{{createRelatedLoads}}        {{createViewData}}
+            {{createRelatedLoads}}
+            {{createViewData}}
     }
 
     public function store(Request $request)
     {
         $data = $request->validate([
-{{validationRules}}
+            {{validationRules}}
         ]);
 
-{{storeCreate}}
+        {{storeCreate}}
+
         return redirect()->route('{{tableName}}.index')->with('success', 'บันทึกข้อมูลเรียบร้อยแล้ว');
     }
 
@@ -39,7 +41,7 @@ class {{controllerClass}} extends Controller
     public function edit($id)
     {
         ${{modelVariable}} = {{modelClass}}::findOrFail($id);
-{{editRelatedLoads}}        {{editViewData}}
+        {{editRelatedLoads}}        {{editViewData}}
     }
 
     public function update(Request $request, $id)
@@ -47,10 +49,11 @@ class {{controllerClass}} extends Controller
         ${{modelVariable}} = {{modelClass}}::findOrFail($id);
 
         $data = $request->validate([
-{{validationRules}}
+        {{validationRules}}
         ]);
 
-{{updateAssignments}}        ${{modelVariable}}->save();
+        {{updateAssignments}}
+        ${{modelVariable}}->save();
 
         return redirect()->route('{{tableName}}.index')->with('success', 'แก้ไขข้อมูลเรียบร้อยแล้ว');
     }
