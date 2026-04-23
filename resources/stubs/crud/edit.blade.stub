@@ -1,8 +1,9 @@
 @extends('{{layout}}')
 
 @section('content')
-    <div class="">
-        <h2 class="mb-4">{{sectionTitle}}</h2>
+     <div class="row g-4">
+    <div class="col-12">
+       
 
         <form action="{{ route('{{routeName}}.update', ${{modelVariable}}->id) }}" method="POST" autocomplete="off">
             @csrf
@@ -14,6 +15,9 @@
             <a href="{{ route('{{routeName}}.index') }}" class="btn btn-secondary">{{cancelLabel}}</a>
         </form>
     </div>
+    </div>
 @endsection
 
 @section('title', '{{pageTitle}}')
+@section('page-title', '{{sectionTitle}}')
+@section('page-description', '{{sectionTitle}}')

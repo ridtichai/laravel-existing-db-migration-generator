@@ -1,17 +1,38 @@
 @extends('{{layout}}')
 
 @section('content')
-    <div class="">
-        <h2>{{sectionTitle}}</h2>
+     <div class="row g-4">
+      <div class="col-12">
 
-        <a href="{{ route('{{routeName}}.create') }}" class="btn btn-primary mb-3">+ เพิ่ม{{title}}</a>
+         <div class="d-flex justify-content-between">
 
-        @if (session('success'))
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                <strong>{{ session('success') }}</strong>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        @endif
+                <div class="d-flex">
+                    <form action="{{ route('{{routeName}}.index') }}" method="GET" class="form-inline mb-3">
+
+                        <div class="input-group mb-3">
+                            <input type="text" class="form-control" placeholder="รหัส{{sectionTitle}} หรือ ชื่อ{{sectionTitle}}"
+                                name="search" value="{{ request()->input('search') }}">
+                            <button class="btn btn-primary" type="submit">ค้นหา</button>
+
+
+                            @if (request()->input('search'))
+                                <a href="{{ route('{{routeName}}.index') }}" class="btn btn-secondary ml-2"><i
+                                        class="bi bi-x-circle"></i> ล้างผลการค้นหา</a>
+                            @endif
+
+                        </div>
+
+                    </form>
+
+                </div>
+
+
+                <div>
+                     <a href="{{ route('{{routeName}}.create') }}" class="btn btn-primary mb-3">+ เพิ่ม{{title}}</a>
+                </div>
+
+         </div>
+
 
     <div class="table-responsive">
         <table class="table table-bordered table-striped">
@@ -34,10 +55,16 @@
         </table>
         </div>
 
-          <div class="mt-2">
-            {{ ${{pluralVariable}}->links() }}
+        <div>
+                แสดง {{ ${{pluralVariable}}->firstItem() }} - {{ ${{pluralVariable}}->lastItem() }}
+                จากทั้งหมด {{ ${{pluralVariable}}->total() }} รายการ
         </div>
 
+          <div class="mt-2">
+            {{ ${{pluralVariable}}->appends($_GET)->links() }}
+        </div>
+
+    </div>
     </div>
 @endsection
 
@@ -71,7 +98,22 @@
                 });
             });
         });
+
+                @if (session('success'))
+            Swal.fire({
+                title: "{{ session('success') }}",
+                icon: "success",
+                draggable: true,
+                confirmButtonText: "OK",
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                showCloseButton: false
+            });
+        @endif
+
     </script>
 @endpush
 
 @section('title', '{{pageTitle}}')
+@section('page-title', '{{sectionTitle}}')
+@section('page-description', '{{sectionTitle}}')

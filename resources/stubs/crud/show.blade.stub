@@ -1,8 +1,9 @@
 @extends('{{layout}}')
 
 @section('content')
-    <div class="">
-        <h2 class="mb-4">{{sectionTitle}}</h2>
+    <div class="row g-4">
+    <div class="col-12">
+        
 
         <div class="card">
             <div class="card-body">
@@ -15,6 +16,9 @@
             <a href="{{ route('{{routeName}}.edit', ${{modelVariable}}->id) }}" class="btn btn-warning">แก้ไข</a>
         </div>
     </div>
+    </div>
 @endsection
 
 @section('title', '{{pageTitle}}')
+@section('page-title', '{{sectionTitle}}')
+@section('page-description', '{{sectionTitle}}')

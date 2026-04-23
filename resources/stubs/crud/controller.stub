@@ -9,7 +9,18 @@ class {{controllerClass}} extends Controller
 {
     public function index()
     {
-        ${{pluralVariable}} = {{modelClass}}::paginate(20);
+        ${{pluralVariable}} = {{modelClass}}::query();
+
+        if ($request->filled('search')) {
+            $search = $request->input('search');
+            ${{pluralVariable}}->where(function ($query) use ($search) {
+                $query->where('name', 'like', "%{$search}%")
+                    ->orWhere('code', 'like', "%{$search}%");
+            });
+        }
+
+        ${{pluralVariable}} = ${{pluralVariable}}->paginate(20);
+
 
         return view('{{indexView}}', compact('{{pluralVariable}}'));
     }

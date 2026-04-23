@@ -95,23 +95,23 @@ class CrudGenerator
 
         $editContent = $this->renderStub('crud/edit.blade.stub', [
             '{{layout}}' => $layout,
-            '{{title}}' => 'แก้ไข' . $singleTitle,
-            '{{sectionTitle}}' => 'แก้ไข' . $singleTitle,
+            '{{title}}' => 'แก้ไข ' . $singleTitle,
+            '{{sectionTitle}}' => 'แก้ไข ' . $singleTitle,
             '{{routeName}}' => $table,
             '{{formInclude}}' => $viewDotBase . '._form',
             '{{modelVariable}}' => $modelVariable,
             '{{submitLabel}}' => 'บันทึก',
             '{{cancelLabel}}' => 'ยกเลิก',
-            '{{pageTitle}}' => 'แก้ไข' . $singleTitle,
+            '{{pageTitle}}' => 'แก้ไข ' . $singleTitle,
         ]);
 
         $showContent = $this->renderStub('crud/show.blade.stub', [
             '{{layout}}' => $layout,
-            '{{sectionTitle}}' => 'รายละเอียด' . $singleTitle,
+            '{{sectionTitle}}' => 'รายละเอียด ' . $singleTitle,
             '{{routeName}}' => $table,
             '{{modelVariable}}' => $modelVariable,
             '{{showRows}}' => $this->buildShowRows($fields, '$' . $modelVariable),
-            '{{pageTitle}}' => 'รายละเอียด' . $singleTitle,
+            '{{pageTitle}}' => 'รายละเอียด ' . $singleTitle,
         ]);
 
         $formContent = $this->renderStub('crud/_form.blade.stub', [
@@ -404,15 +404,42 @@ class CrudGenerator
             $lines[] = "                        <td>{{ {$itemVariable}->{$field['name']} }}</td>";
         }
 
-        $lines[] = '                        <td>';
-        $lines[] = '                            <a href="{{ route(\'' . $routeName . '.show\', ' . $itemVariable . '->id) }}" class="btn btn-sm btn-info">View</a>';
-        $lines[] = '                            <a href="{{ route(\'' . $routeName . '.edit\', ' . $itemVariable . '->id) }}" class="btn btn-sm btn-warning">แก้ไข</a>';
-        $lines[] = '                            <form action="{{ route(\'' . $routeName . '.destroy\', ' . $itemVariable . '->id) }}" method="POST" class="delete-form" style="display:inline-block;">';
-        $lines[] = '                                @csrf';
-        $lines[] = '                                @method(\'DELETE\')';
-        $lines[] = '                                <button type="submit" class="btn btn-sm btn-danger">ลบ</button>';
-        $lines[] = '                            </form>';
-        $lines[] = '                        </td>';
+
+$lines[] = '                    <td class="text-center">';
+$lines[] = '                        <div class="dropdown">';
+$lines[] = '                            <button class="btn btn-sm btn-outline-primary dropdown-toggle" type="button"';
+$lines[] = '                                data-bs-toggle="dropdown" aria-expanded="false">';
+$lines[] = '                                จัดการ';
+$lines[] = '                            </button>';
+
+$lines[] = '                            <ul class="dropdown-menu">';
+$lines[] = '                                <li>';
+$lines[] = '                                    <a class="dropdown-item" href="{{ route(\'' . $routeName . '.show\', ' . $itemVariable . '->id) }}">';
+$lines[] = '                                        <i class="bi bi-eye me-2"></i>View';
+$lines[] = '                                    </a>';
+$lines[] = '                                </li>';
+$lines[] = '                                <li>';
+$lines[] = '                                    <a class="dropdown-item" href="{{ route(\'' . $routeName . '.edit\', ' . $itemVariable . '->id) }}">';
+$lines[] = '                                        <i class="bi bi-pencil-square me-2"></i>แก้ไข';
+$lines[] = '                                    </a>';
+$lines[] = '                                </li>';
+$lines[] = '                                <li>';
+$lines[] = '                                    <hr class="dropdown-divider">';
+$lines[] = '                                </li>';
+$lines[] = '                                <li>';
+$lines[] = '                                    <form action="{{ route(\'' . $routeName . '.destroy\', ' . $itemVariable . '->id) }}" method="POST"';
+$lines[] = '                                        class="delete-form m-0">';
+$lines[] = '                                        @csrf';
+$lines[] = '                                        @method(\'DELETE\')';
+$lines[] = '                                        <button type="submit" class="dropdown-item text-danger">';
+$lines[] = '                                            <i class="bi bi-trash me-2"></i>ลบ';
+$lines[] = '                                        </button>';
+$lines[] = '                                    </form>';
+$lines[] = '                                </li>';
+$lines[] = '                            </ul>';
+$lines[] = '                        </div>';
+$lines[] = '                    </td>';
+
 
         return implode("\n", $lines);
     }
