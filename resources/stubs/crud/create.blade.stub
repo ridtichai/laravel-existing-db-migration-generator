@@ -1,21 +1,18 @@
 @extends('{{layout}}')
 
 @section('content')
-   <div class="row g-4">
-    <div class="col-12">
-        
+    <div class="">
+        <h2>{{sectionTitle}}</h2>
+
         <form action="{{ route('{{routeName}}.store') }}" method="POST" autocomplete="off">
             @csrf
 
-            @include('{{formInclude}}', ['item' => null])
+{{createFormRows}}
 
             <button type="submit" class="btn btn-primary">{{submitLabel}}</button>
             <a href="{{ route('{{routeName}}.index') }}" class="btn btn-secondary">{{cancelLabel}}</a>
         </form>
     </div>
-    </div>
 @endsection
 
 @section('title', '{{pageTitle}}')
-@section('page-title', '{{sectionTitle}}')
-@section('page-description', '{{sectionTitle}}')

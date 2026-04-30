@@ -7,7 +7,7 @@ use {{modelNamespace}}\{{modelClass}};
 {{relatedModelUses}}{{hashUse}}
 class {{controllerClass}} extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         ${{pluralVariable}} = {{modelClass}}::query();
 

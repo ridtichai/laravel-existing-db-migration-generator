@@ -76,7 +76,7 @@ class CrudGenerator
             '{{routeName}}' => $table,
             '{{pluralVariable}}' => $pluralVariable,
             '{{indexHeaders}}' => $this->buildIndexHeaders($fields),
-            '{{indexCells}}' => $this->buildIndexCells($fields, '$value', $table , $pluralVariable),
+            '{{indexCells}}' => $this->buildIndexCells($fields, '$value', $table, $pluralVariable),
             '{{emptyColspan}}' => (string) ($this->countVisibleIndexFields($fields) + 2),
             '{{emptyText}}' => 'ยังไม่มีข้อมูล',
             '{{pageTitle}}' => $resourceTitle,
@@ -87,7 +87,7 @@ class CrudGenerator
             '{{title}}' => 'เพิ่ม' . $singleTitle,
             '{{sectionTitle}}' => 'เพิ่ม' . $singleTitle,
             '{{routeName}}' => $table,
-            '{{formInclude}}' => $viewDotBase . '._form',
+            '{{createFormRows}}' => $this->buildFormRows($fields, $formColumns, 'create', null),
             '{{submitLabel}}' => 'บันทึก',
             '{{cancelLabel}}' => 'ยกเลิก',
             '{{pageTitle}}' => 'เพิ่ม' . $singleTitle,
@@ -95,14 +95,14 @@ class CrudGenerator
 
         $editContent = $this->renderStub('crud/edit.blade.stub', [
             '{{layout}}' => $layout,
-            '{{title}}' => 'แก้ไข ' . $singleTitle,
-            '{{sectionTitle}}' => 'แก้ไข ' . $singleTitle,
+            '{{title}}' => 'แก้ไข' . $singleTitle,
+            '{{sectionTitle}}' => 'แก้ไข' . $singleTitle,
             '{{routeName}}' => $table,
-            '{{formInclude}}' => $viewDotBase . '._form',
             '{{modelVariable}}' => $modelVariable,
+            '{{editFormRows}}' => $this->buildFormRows($fields, $formColumns, 'edit', '$' . $modelVariable),
             '{{submitLabel}}' => 'บันทึก',
             '{{cancelLabel}}' => 'ยกเลิก',
-            '{{pageTitle}}' => 'แก้ไข ' . $singleTitle,
+            '{{pageTitle}}' => 'แก้ไข' . $singleTitle,
         ]);
 
         $showContent = $this->renderStub('crud/show.blade.stub', [
@@ -114,9 +114,9 @@ class CrudGenerator
             '{{pageTitle}}' => 'รายละเอียด ' . $singleTitle,
         ]);
 
-        $formContent = $this->renderStub('crud/_form.blade.stub', [
-            '{{formRows}}' => $this->buildFormRows($fields, $formColumns),
-        ]);
+        // $formContent = $this->renderStub('crud/_form.blade.stub', [
+        //     '{{formRows}}' => $this->buildFormRows($fields, $formColumns),
+        // ]);
 
         $files = [];
 
@@ -130,19 +130,19 @@ class CrudGenerator
         $createPath = $viewDirectory . DIRECTORY_SEPARATOR . 'create.blade.php';
         $editPath = $viewDirectory . DIRECTORY_SEPARATOR . 'edit.blade.php';
         $showPath = $viewDirectory . DIRECTORY_SEPARATOR . 'show.blade.php';
-        $formPath = $viewDirectory . DIRECTORY_SEPARATOR . '_form.blade.php';
+        // $formPath = $viewDirectory . DIRECTORY_SEPARATOR . '_form.blade.php';
 
         $this->writeFile($indexPath, $indexContent, $force);
         $this->writeFile($createPath, $createContent, $force);
         $this->writeFile($editPath, $editContent, $force);
         $this->writeFile($showPath, $showContent, $force);
-        $this->writeFile($formPath, $formContent, $force);
+        // $this->writeFile($formPath, $formContent, $force);
 
         $files[] = $indexPath;
         $files[] = $createPath;
         $files[] = $editPath;
         $files[] = $showPath;
-        $files[] = $formPath;
+        // $files[] = $formPath;
 
         return [
             'files' => $files,
@@ -405,40 +405,40 @@ class CrudGenerator
         }
 
 
-$lines[] = '                    <td class="text-center">';
-$lines[] = '                        <div class="dropdown">';
-$lines[] = '                            <button class="btn btn-sm btn-outline-primary dropdown-toggle" type="button"';
-$lines[] = '                                data-bs-toggle="dropdown" aria-expanded="false">';
-$lines[] = '                                จัดการ';
-$lines[] = '                            </button>';
+        $lines[] = '                    <td class="text-center">';
+        $lines[] = '                        <div class="dropdown">';
+        $lines[] = '                            <button class="btn btn-sm btn-outline-primary dropdown-toggle" type="button"';
+        $lines[] = '                                data-bs-toggle="dropdown" aria-expanded="false">';
+        $lines[] = '                                จัดการ';
+        $lines[] = '                            </button>';
 
-$lines[] = '                            <ul class="dropdown-menu">';
-$lines[] = '                                <li>';
-$lines[] = '                                    <a class="dropdown-item" href="{{ route(\'' . $routeName . '.show\', ' . $itemVariable . '->id) }}">';
-$lines[] = '                                        <i class="bi bi-eye me-2"></i>View';
-$lines[] = '                                    </a>';
-$lines[] = '                                </li>';
-$lines[] = '                                <li>';
-$lines[] = '                                    <a class="dropdown-item" href="{{ route(\'' . $routeName . '.edit\', ' . $itemVariable . '->id) }}">';
-$lines[] = '                                        <i class="bi bi-pencil-square me-2"></i>แก้ไข';
-$lines[] = '                                    </a>';
-$lines[] = '                                </li>';
-$lines[] = '                                <li>';
-$lines[] = '                                    <hr class="dropdown-divider">';
-$lines[] = '                                </li>';
-$lines[] = '                                <li>';
-$lines[] = '                                    <form action="{{ route(\'' . $routeName . '.destroy\', ' . $itemVariable . '->id) }}" method="POST"';
-$lines[] = '                                        class="delete-form m-0">';
-$lines[] = '                                        @csrf';
-$lines[] = '                                        @method(\'DELETE\')';
-$lines[] = '                                        <button type="submit" class="dropdown-item text-danger">';
-$lines[] = '                                            <i class="bi bi-trash me-2"></i>ลบ';
-$lines[] = '                                        </button>';
-$lines[] = '                                    </form>';
-$lines[] = '                                </li>';
-$lines[] = '                            </ul>';
-$lines[] = '                        </div>';
-$lines[] = '                    </td>';
+        $lines[] = '                            <ul class="dropdown-menu">';
+        $lines[] = '                                <li>';
+        $lines[] = '                                    <a class="dropdown-item" href="{{ route(\'' . $routeName . '.show\', ' . $itemVariable . '->id) }}">';
+        $lines[] = '                                        <i class="bi bi-eye me-2"></i>View';
+        $lines[] = '                                    </a>';
+        $lines[] = '                                </li>';
+        $lines[] = '                                <li>';
+        $lines[] = '                                    <a class="dropdown-item" href="{{ route(\'' . $routeName . '.edit\', ' . $itemVariable . '->id) }}">';
+        $lines[] = '                                        <i class="bi bi-pencil-square me-2"></i>แก้ไข';
+        $lines[] = '                                    </a>';
+        $lines[] = '                                </li>';
+        $lines[] = '                                <li>';
+        $lines[] = '                                    <hr class="dropdown-divider">';
+        $lines[] = '                                </li>';
+        $lines[] = '                                <li>';
+        $lines[] = '                                    <form action="{{ route(\'' . $routeName . '.destroy\', ' . $itemVariable . '->id) }}" method="POST"';
+        $lines[] = '                                        class="delete-form m-0">';
+        $lines[] = '                                        @csrf';
+        $lines[] = '                                        @method(\'DELETE\')';
+        $lines[] = '                                        <button type="submit" class="dropdown-item text-danger">';
+        $lines[] = '                                            <i class="bi bi-trash me-2"></i>ลบ';
+        $lines[] = '                                        </button>';
+        $lines[] = '                                    </form>';
+        $lines[] = '                                </li>';
+        $lines[] = '                            </ul>';
+        $lines[] = '                        </div>';
+        $lines[] = '                    </td>';
 
 
         return implode("\n", $lines);
@@ -457,7 +457,7 @@ $lines[] = '                    </td>';
         return $count;
     }
 
-    protected function buildFormRows(array $fields, $formColumns)
+    protected function buildFormRows(array $fields, $formColumns, $mode = 'create', $itemVariable = null)
     {
         $visibleFields = [];
         $hiddenFields = [];
@@ -474,7 +474,8 @@ $lines[] = '                    </td>';
         $rows = [];
 
         foreach ($hiddenFields as $field) {
-            $rows[] = $this->buildHiddenField($field);
+            // $rows[] = $this->buildHiddenField($field);
+            $rows[] = $this->buildHiddenField($field, $mode, $itemVariable);
         }
 
         $chunks = array_chunk($visibleFields, max(1, (int) $formColumns));
@@ -484,7 +485,8 @@ $lines[] = '                    </td>';
             $rowLines[] = '<div class="row">';
 
             foreach ($chunk as $field) {
-                $rowLines[] = $this->buildFieldBlock($field, $colClass);
+                //  $rowLines[] = $this->buildFieldBlock($field, $colClass);
+                $rowLines[] = $this->buildFieldBlock($field, $colClass, $mode, $itemVariable);
             }
 
             $rowLines[] = '</div>';
@@ -528,21 +530,34 @@ $lines[] = '                    </td>';
         }
     }
 
-    protected function buildHiddenField(array $field)
+    /*     protected function buildHiddenField(array $field)
     {
         return '<input type="hidden" name="' . $field['name'] . '" value="{{ old(\'' . $field['name'] . '\', isset($item) ? $item->' . $field['name'] . ' : \'\') }}">';
+    } */
+
+    protected function buildHiddenField(array $field, $mode = 'create', $itemVariable = null)
+    {
+        $name = $field['name'];
+        $value = $this->buildOldValueExpression($name, $mode, $itemVariable);
+
+        return '<input type="hidden" name="' . $name . '" value="{{ ' . $value . ' }}">';
     }
 
-    protected function buildFieldBlock(array $field, $colClass)
+    protected function buildFieldBlock(array $field, $colClass, $mode = 'create', $itemVariable = null)
     {
         $name = $field['name'];
         $label = $field['label'];
         $required = $field['required'] ? 'required' : '';
-        $oldValue = "old('{$name}', isset(\$item) ? \$item->{$name} : '')";
+        $oldValue = $this->buildOldValueExpression($name, $mode, $itemVariable);
 
         $lines = [];
         $lines[] = '    <div class="' . $colClass . ' mb-3">';
         $lines[] = '        <label for="' . $name . '" class="form-label">' . $label . '</label>';
+
+        if ($mode === 'edit' && $field['input_type'] === 'password') {
+            $required = '';
+        }
+
 
         switch ($field['input_type']) {
             case 'textarea':
@@ -594,6 +609,15 @@ $lines[] = '                    </td>';
         $lines[] = '    </div>';
 
         return implode("\n", $lines);
+    }
+
+    protected function buildOldValueExpression($fieldName, $mode = 'create', $itemVariable = null)
+    {
+        if ($mode === 'edit' && $itemVariable) {
+            return "old('{$fieldName}', {$itemVariable}->{$fieldName})";
+        }
+
+        return "old('{$fieldName}')";
     }
 
     protected function renderStub($stub, array $replacements)
