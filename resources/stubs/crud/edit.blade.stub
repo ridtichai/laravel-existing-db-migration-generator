@@ -17,3 +17,5 @@
 @endsection
 
 @section('title', '{{pageTitle}}')
+@section('page-title', '{{sectionTitle}}')
+@section('page-description', '{{sectionTitle}}')
