@@ -408,7 +408,7 @@ class CrudGenerator
         $lines[] = '                    <td class="text-center">';
         $lines[] = '                        <div class="dropdown">';
         $lines[] = '                            <button class="btn btn-sm btn-outline-primary dropdown-toggle" type="button"';
-        $lines[] = '                                data-bs-toggle="dropdown" aria-expanded="false">';
+        $lines[] = '                                data-bs-toggle="dropdown" data-bs-boundary="viewport" aria-expanded="false">';
         $lines[] = '                                จัดการ';
         $lines[] = '                            </button>';
 

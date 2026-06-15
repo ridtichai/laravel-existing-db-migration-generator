@@ -112,6 +112,23 @@
         @endif
 
     </script>
+
+
+        <script>
+        document.querySelectorAll('.table-responsive .dropdown-toggle').forEach(function(dropdownToggle) {
+            new bootstrap.Dropdown(dropdownToggle, {
+                boundary: 'viewport',
+                popperConfig: function(defaultBsPopperConfig) {
+                    return {
+                        ...defaultBsPopperConfig,
+                        strategy: 'fixed'
+                    };
+                }
+            });
+        });
+    </script>
+
+    
 @endpush
 
 @section('title', '{{pageTitle}}')
