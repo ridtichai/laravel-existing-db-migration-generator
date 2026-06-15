@@ -2,7 +2,7 @@
 
 @section('content')
     <div class="">
-        <h2 class="mb-4">{{sectionTitle}}</h2>
+
 
         <form action="{{ route('{{routeName}}.update', ${{modelVariable}}->id) }}" method="POST" autocomplete="off">
             @csrf
