@@ -175,7 +175,7 @@ class SeederWriter
             ? "DB::table('{$table}')->truncate();"
             : "DB::table('{$table}')->delete();";
 
-        if ($index > 1) {
+        if ($index > 0) {
             $resetStatement =  "// " . $resetStatement;
         }
 
