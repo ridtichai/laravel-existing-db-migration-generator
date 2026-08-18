@@ -2,7 +2,6 @@
 
 @section('content')
     <div class="">
-        <h2>{{sectionTitle}}</h2>
 
         <form action="{{ route('{{routeName}}.store') }}" method="POST" autocomplete="off">
             @csrf

@@ -125,7 +125,7 @@ class SeederWriter
                 throw new RuntimeException("Seeder file already exists: {$filePath}. Use --force to overwrite.");
             }
 
-            $content = $this->buildSeederContent($table, $baseClassName, $rows, $chunkSize, $truncate);
+            $content = $this->buildSeederContent($table, $baseClassName, $rows, $chunkSize, $truncate , 0);
             file_put_contents($filePath, $content);
 
             $files[] = $filePath;
@@ -148,7 +148,7 @@ class SeederWriter
                 throw new RuntimeException("Seeder file already exists: {$filePath}. Use --force to overwrite.");
             }
 
-            $content = $this->buildSeederContent($table, $className, $rowChunk, $chunkSize, $truncate && $index === 0);
+            $content = $this->buildSeederContent($table, $className, $rowChunk, $chunkSize, $truncate && $index === 0, $index);
             file_put_contents($filePath, $content);
 
             $files[] = $filePath;
@@ -169,11 +169,15 @@ class SeederWriter
      * @param bool $truncate
      * @return string
      */
-    protected function buildSeederContent($table, $className, array $rows, $chunkSize, $truncate)
+    protected function buildSeederContent($table, $className, array $rows, $chunkSize, $truncate, int $index)
     {
         $resetStatement = $truncate
             ? "DB::table('{$table}')->truncate();"
             : "DB::table('{$table}')->delete();";
+
+        if ($index > 1) {
+            $resetStatement =  "// " . $resetStatement;
+        }
 
         $insertBlocks = $this->buildInsertBlocks($table, $rows, $chunkSize);
 
